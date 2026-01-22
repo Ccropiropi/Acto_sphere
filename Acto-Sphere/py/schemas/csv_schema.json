@@ -1,0 +1,8 @@
+{
+    "columns": ["timestamp", "file", "change"],
+    "dtypes": {
+        "timestamp": "object",
+        "file": "object",
+        "change": "object"
+    }
+}

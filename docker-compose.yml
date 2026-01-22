@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # 1. Redis: Message Broker & Caching Layer
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # 2. PostgreSQL: Persistent Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: acto
+      POSTGRES_PASSWORD: actopassword
+      POSTGRES_DB: actosphere
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  # 3. Go Ingestor (Replaces direct file reading)
+  ingestor:
+    build:
+      context: ./Acto-Sphere/go/ingestor
+      dockerfile: Dockerfile
+    volumes:
+      - ./Acto-Sphere/dat/json:/app/dat # Read C++ logs
+    depends_on:
+      - redis
+    restart: always
+
+  # 4. Rust Analytics Engine (High Performance Worker)
+  rust-engine:
+    build:
+      context: ./Acto-Sphere/rust/analytics
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgres://acto:actopassword@postgres:5432/actosphere
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+
+  # 5. Web Dashboard (Frontend)
+  web-dashboard:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: ["node", "js/server.js"]
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    restart: always
+
+volumes:
+  pgdata:
+  dat:
