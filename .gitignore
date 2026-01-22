@@ -1,0 +1,51 @@
+# General
+.DS_Store
+*.log
+tmp/
+temp/
+
+# Acto-Sphere Specific
+Acto-Sphere/dat/json/*.json
+!Acto-Sphere/dat/json/.keep
+Acto-Sphere/dat/logs/*
+Acto-Sphere/vault_storage/*
+Acto-Sphere/cpp/target_folder/*
+Acto-Sphere/py/target_folder/*
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# C++
+*.o
+*.obj
+*.exe
+Acto-Sphere/cpp/monitor
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Go
+Acto-Sphere/go/acto-monitor
+
+# C# / .NET
+.idea/
+.vscode/
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ruby
+.bundle/
+vendor/bundle/
+
+# Editor
+.idea
+.vscode

@@ -1,0 +1,5 @@
+IF extension IS '.jpg' THEN TAG 'Images'
+IF size > 10MB THEN TAG 'Heavy'
+IF extension IS '.py' THEN TAG 'Code'
+IF size < 1KB THEN TAG 'Tiny'
+IF extension IS '.txt' THEN TAG 'Documents'

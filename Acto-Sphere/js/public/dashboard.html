@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acto-Sphere Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-gray-800 shadow-md border-b border-gray-700">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-400"><i class="fas fa-cube mr-2"></i>Acto-Sphere</h1>
+            <div id="datetime" class="text-sm text-gray-400">Loading time...</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- Weather Card -->
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700 transform hover:scale-105 transition duration-300">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-lg font-semibold text-gray-300">Weather Condition</h2>
+                    <i class="fas fa-cloud-sun text-yellow-400 text-2xl"></i>
+                </div>
+                <div class="flex items-center">
+                    <div class="text-4xl font-bold mr-4" id="temp">--°C</div>
+                    <div>
+                        <div id="condition" class="text-lg font-medium text-gray-200">--</div>
+                        <div id="location" class="text-sm text-gray-500">--</div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700 flex justify-between text-sm text-gray-400">
+                    <span>Humidity</span>
+                    <span id="humidity">--%</span>
+                </div>
+            </div>
+
+            <!-- Storage Card (Mocked for now) -->
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700 transform hover:scale-105 transition duration-300">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-lg font-semibold text-gray-300">Vault Storage</h2>
+                    <i class="fas fa-hdd text-green-400 text-2xl"></i>
+                </div>
+                <div class="mb-2 flex justify-between text-sm">
+                    <span>Used Space</span>
+                    <span class="font-bold text-white">45 GB / 120 GB</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-4 mb-4">
+                    <div class="bg-green-500 h-4 rounded-full" style="width: 37%"></div>
+                </div>
+                <div class="text-xs text-gray-500 mt-2">
+                    <p><i class="fas fa-check-circle mr-1 text-green-500"></i> AES-256 GCM Encryption Active</p>
+                    <p class="mt-1"><i class="fas fa-shield-alt mr-1 text-blue-500"></i> Integrity Check Passed</p>
+                </div>
+            </div>
+
+            <!-- System Status -->
+             <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700 transform hover:scale-105 transition duration-300">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-lg font-semibold text-gray-300">System Modules</h2>
+                    <i class="fas fa-microchip text-purple-400 text-2xl"></i>
+                </div>
+                <ul class="space-y-3">
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm text-gray-400"><i class="fas fa-eye mr-2"></i>C++ Monitor</span>
+                        <span class="px-2 py-1 bg-green-900 text-green-300 text-xs rounded-full">Active</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm text-gray-400"><i class="fas fa-terminal mr-2"></i>Go TUI</span>
+                        <span class="px-2 py-1 bg-blue-900 text-blue-300 text-xs rounded-full">Idle</span>
+                    </li>
+                    <li class="flex justify-between items-center">
+                        <span class="text-sm text-gray-400"><i class="fas fa-lock mr-2"></i>C# Vault</span>
+                        <span class="px-2 py-1 bg-yellow-900 text-yellow-300 text-xs rounded-full">Standby</span>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Activity Chart -->
+        <div class="mt-8 bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
+            <h2 class="text-lg font-semibold text-gray-300 mb-6">File Activity Analytics (Frequency)</h2>
+            <div class="relative h-64 w-full">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        async function loadData() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+
+                // 1. Update Header
+                document.getElementById('datetime').innerText = data.current_datetime || "Offline";
+
+                // 2. Update Weather
+                if (data.weather) {
+                    document.getElementById('temp').innerText = `${data.weather.temperature_c}°C`;
+                    document.getElementById('condition').innerText = data.weather.condition;
+                    document.getElementById('location').innerText = data.weather.location;
+                    document.getElementById('humidity').innerText = `${data.weather.humidity_percent}%`;
+                }
+
+                // 3. Update Chart
+                if (data.frequent_analytics) {
+                    const ctx = document.getElementById('activityChart').getContext('2d');
+                    const labels = Object.keys(data.frequent_analytics);
+                    const values = Object.values(data.frequent_analytics);
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '# of File Changes',
+                                data: values,
+                                backgroundColor: [
+                                    'rgba(59, 130, 246, 0.6)',
+                                    'rgba(16, 185, 129, 0.6)',
+                                    'rgba(245, 158, 11, 0.6)',
+                                    'rgba(239, 68, 68, 0.6)',
+                                    'rgba(139, 92, 246, 0.6)'
+                                ],
+                                borderColor: [
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(16, 185, 129, 1)',
+                                    'rgba(245, 158, 11, 1)',
+                                    'rgba(239, 68, 68, 1)',
+                                    'rgba(139, 92, 246, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(75, 85, 99, 0.4)'
+                                    },
+                                    ticks: {
+                                        color: '#9ca3af'
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: '#9ca3af'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: '#d1d5db'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+            } catch (error) {
+                console.error("Failed to load dashboard data:", error);
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

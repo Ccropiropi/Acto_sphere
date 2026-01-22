@@ -1,0 +1,13 @@
+.git
+.gitignore
+.dockerignore
+node_modules
+venv
+bin
+obj
+target
+*.log
+Acto-Sphere/vault_storage
+Acto-Sphere/dat/json/*.json
+Acto-Sphere/cpp/monitor
+Acto-Sphere/go/acto-monitor
